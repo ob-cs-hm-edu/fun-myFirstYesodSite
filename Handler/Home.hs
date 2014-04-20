@@ -1,4 +1,4 @@
-{-# LANGUAGE TupleSections, OverloadedStrings #-}
+{-# LANGUAGE TupleSections, OverloadedStrings, QuasiQuotes #-}
 module Handler.Home where
 
 import Import
@@ -12,28 +12,27 @@ import Import
 -- inclined, or create a single monolithic file.
 getHomeR :: Handler Html
 getHomeR = do
-    (formWidget, formEnctype) <- generateFormPost sampleForm
-    let submission = Nothing :: Maybe (FileInfo, Text)
-        handlerName = "getHomeR" :: Text
+    (formWidget, formEnctype) <- generateFormPost simplestForm
+    let submission = Nothing :: Maybe (Text, Text)
     defaultLayout $ do
         aDomId <- newIdent
-        setTitle "Welcome To Yesod!"
+        setTitle "Welcome To SimplestNotes!"
         $(widgetFile "homepage")
 
 postHomeR :: Handler Html
 postHomeR = do
-    ((result, formWidget), formEnctype) <- runFormPost sampleForm
-    let handlerName = "postHomeR" :: Text
-        submission = case result of
+    ((result, formWidget), formEnctype) <- runFormPost simplestForm
+    let submission = case result of
             FormSuccess res -> Just res
             _ -> Nothing
-
     defaultLayout $ do
         aDomId <- newIdent
-        setTitle "Welcome To Yesod!"
-        $(widgetFile "homepage")
+        setTitle "Welcome To SimplestNotes!"
+        case submission of
+            Just (user,_) -> [whamlet|<h1>Hallo #{user}|]
+            _ -> $(widgetFile "homepage")
 
-sampleForm :: Form (FileInfo, Text)
-sampleForm = renderDivs $ (,)
-    <$> fileAFormReq "Choose a file"
-    <*> areq textField "What's on the file?" Nothing
+simplestForm :: Form (Text, Text)
+simplestForm = renderDivs $ (,)
+    <$> areq textField "Username:" Nothing
+    <*> areq textField "Password" Nothing
